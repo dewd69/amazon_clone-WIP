@@ -1,4 +1,4 @@
-// scripts/checkout.js
+
 import { cart, removeFromCart } from './cart.js';
 import { products } from '../data/products.js';
 

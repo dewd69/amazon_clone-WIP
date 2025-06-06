@@ -1,6 +1,6 @@
 // scripts/amazon.js
 import { products } from '../data/products.js';
-import { cart, addedMessageTimeouts } from './cart.js';
+import { cart, addedMessageTimeouts, saveToStorage } from './cart.js';
 
 function renderProducts() {
   let productsHTML = '';
@@ -56,6 +56,7 @@ function setupAddToCartButtons() {
         existingItem.quantity += quantity;
       } else {
         cart.push({ productId, quantity });
+        saveToStorage();
       }
 
       const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -74,7 +75,6 @@ function setupAddToCartButtons() {
   });
 }
 
-// Main function
 function initializeAmazonPage() {
   renderProducts();
   setupAddToCartButtons();
