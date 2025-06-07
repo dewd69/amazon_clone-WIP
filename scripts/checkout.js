@@ -1,4 +1,3 @@
-
 import { cart, removeFromCart } from './cart.js';
 import { products } from '../data/products.js';
 
@@ -6,9 +5,19 @@ function getProductById(productId) {
   return products.find(product => product.id === productId);
 }
 
+export function updateCartQuantity() {
+  const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+const element = document.querySelector('.checkout-item-value');
+if (element) {
+  element.innerHTML = `${total} items`;
+}
+;
+}
+
 function renderCartItems() {
   const container = document.querySelector('.order-summary');
   container.innerHTML = '';
+   if (!container) return;  
 
   cart.forEach(cartItem => {
     const product = getProductById(cartItem.productId);
@@ -46,35 +55,31 @@ function renderCartItems() {
               </div>
             </div>
             <div class="delivery-option">
-                  <input type="radio"
-                    class="delivery-option-input"
-                    name="delivery-${product.id}">
-                  <div>
-                    <div class="delivery-option-date">
-                      Monday, June 13
-                    </div>
-                    <div class="delivery-option-price">
-                      $9.99 - Shipping
-                    </div>
+              <input type="radio" class="delivery-option-input" name="delivery-${product.id}">
+              <div>
+                <div class="delivery-option-date">Monday, June 13</div>
+                <div class="delivery-option-price">$9.99 - Shipping</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     `;
   });
-}
 
-function initializeCheckoutPage() {
-  renderCartItems();
-}
-
-initializeCheckoutPage();
-
-document.querySelectorAll('.js-delete').forEach((link) => {
+  document.querySelectorAll('.js-delete').forEach((link) => {
     link.addEventListener('click', () => {
-        const productId = link.dataset.productId;
-        removeFromCart(productId);
-        const container = document.querySelector(`.js-cart-item-container-${productId}`);
-        container.remove();
-    })
-});
+      const productId = link.dataset.productId;
+      removeFromCart(productId);
+      const container = document.querySelector(`.js-cart-item-container-${productId}`);
+      container.remove();
+      updateCartQuantity();
+    });
+  });
+}
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCartItems();
+  updateCartQuantity();
+});

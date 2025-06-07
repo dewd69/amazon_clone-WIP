@@ -1,4 +1,4 @@
-// scripts/amazon.js
+import {updateCartQuantity} from './checkout.js'
 import { products } from '../data/products.js';
 import { cart, addedMessageTimeouts, saveToStorage } from './cart.js';
 
@@ -45,6 +45,7 @@ function renderProducts() {
   document.querySelector('.js-products-grid').innerHTML = productsHTML;
 }
 
+
 function setupAddToCartButtons() {
   document.querySelectorAll('.js-add-to-cart').forEach(button => {
     button.addEventListener('click', () => {
@@ -58,6 +59,7 @@ function setupAddToCartButtons() {
         cart.push({ productId, quantity });
         saveToStorage();
       }
+
 
       const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
       document.querySelector('.js-cart-quantity').innerHTML = totalQuantity;
@@ -74,6 +76,9 @@ function setupAddToCartButtons() {
     });
   });
 }
+if(cart.reduce((sum, item) => sum + item.quantity, 0)){
+document.querySelector('.js-cart-quantity').innerHTML = `${cart.reduce((sum, item) => sum + item.quantity, 0)}`}
+
 
 function initializeAmazonPage() {
   renderProducts();
@@ -81,3 +86,5 @@ function initializeAmazonPage() {
 }
 
 initializeAmazonPage();
+
+updateCartQuantity();
