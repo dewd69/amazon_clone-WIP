@@ -1,4 +1,4 @@
-import { cart, removeFromCart, saveToStorage } from './cart.js';
+import { cart, removeFromCart, saveToStorage, updateDeliveryoption } from './cart.js';
 import { products } from '../data/products.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
 
@@ -18,65 +18,15 @@ export function updateCartQuantity() {
   if (element) {
     element.innerHTML = `${total} items`;
   }
+  // Also update header/cart icon quantity if exists
+  const cartQuantityEl = document.querySelector('.js-cart-quantity');
+  if (cartQuantityEl) {
+    cartQuantityEl.innerHTML = total;
+  }
 }
 
 function formatCurrency(priceCents) {
   return (priceCents / 100).toFixed(2);
-}
-
-function renderCartItems() {
-  const container = document.querySelector('.order-summary');
-  if (!container) return;
-  container.innerHTML = '';
-
-  cart.forEach(cartItem => {
-    const product = getProductById(cartItem.productId);
-    if (!product) return;
-
-    container.innerHTML += `
-      <div class="cart-item-container js-cart-item-container-${product.id}">
-        <div class="delivery-date">Delivery date: Tuesday, June 21</div>
-        <div class="cart-item-details-grid">
-          <img class="product-image" src="${product.image}">
-          <div class="cart-item-details">
-            <div class="product-name">${product.name}</div>
-            <div class="product-price">$${(product.priceCents / 100).toFixed(2)}</div>
-            <div class="product-quantity">
-              <span>Quantity: <span class="quantity-label">${cartItem.quantity}</span></span>
-              <span class="update-quantity-link link-primary">Update</span>
-              <span class="delete-quantity-link js-delete link-primary" data-product-id="${product.id}">Delete</span>
-            </div>
-          </div>
-          ${deliveryoptionshtml(product, cartItem.deliveryoptionsid)}
-        </div>
-      </div>
-    `;
-  });
-
-  // Add delete functionality
-  document.querySelectorAll('.js-delete').forEach((link) => {
-    link.addEventListener('click', () => {
-      const productId = link.dataset.productId;
-      removeFromCart(productId);
-      const container = document.querySelector(`.js-cart-item-container-${productId}`);
-      if (container) container.remove();
-      updateCartQuantity();
-    });
-  });
-
-  // Add change delivery option functionality
-  document.querySelectorAll('.delivery-option-input').forEach((input) => {
-    input.addEventListener('change', () => {
-      const productId = input.name.split('delivery-')[1];
-      const deliveryOptionId = input.value;
-
-      const cartItem = cart.find(item => item.productId === productId);
-      if (cartItem) {
-        cartItem.deliveryoptionsid = deliveryOptionId;
-        saveToStorage();
-      }
-    });
-  });
 }
 
 function deliveryoptionshtml(product, selectedId) {
@@ -89,7 +39,9 @@ function deliveryoptionshtml(product, selectedId) {
     const checked = option.id === selectedId ? 'checked' : '';
 
     html += `
-      <div class="delivery-option">
+      <div class="delivery-option js-delivery-option"
+        data-product-id="${product.id}"
+        data-delivery-option-id="${option.id}">
         <input
           type="radio"
           class="delivery-option-input"
@@ -108,6 +60,62 @@ function deliveryoptionshtml(product, selectedId) {
   return html;
 }
 
+export function renderCartItems() {
+  const container = document.querySelector('.order-summary');
+  if (!container) return;
+  container.innerHTML = '';
+
+  cart.forEach(cartItem => {
+    const product = getProductById(cartItem.productId);
+    if (!product) return;
+
+    const selectedOption = deliveryoptions.find(opt => opt.id === cartItem.deliveryoptionsid) || deliveryoptions[0];
+    const deliveryDate = dayjs().add(selectedOption.deliverydays, 'days').format('dddd, MMMM D');
+
+    container.innerHTML += `
+      <div class="cart-item-container js-cart-item-container-${product.id}">
+        <div class="delivery-date">Delivery date: ${deliveryDate}</div>
+        <div class="cart-item-details-grid">
+          <img class="product-image" src="${product.image}">
+          <div class="cart-item-details">
+            <div class="product-name">${product.name}</div>
+            <div class="product-price">$${(product.priceCents / 100).toFixed(2)}</div>
+            <div class="product-quantity">
+              <span>Quantity: <span class="quantity-label">${cartItem.quantity}</span></span>
+              <span class="update-quantity-link link-primary">Update</span>
+              <span class="delete-quantity-link js-delete link-primary" data-product-id="${product.id}">Delete</span>
+            </div>
+          </div>
+          ${deliveryoptionshtml(product, cartItem.deliveryoptionsid)}
+        </div>
+      </div>
+    `;
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.js-delete').forEach((link) => {
+    link.addEventListener('click', () => {
+      const productId = link.dataset.productId;
+      removeFromCart(productId);
+      const container = document.querySelector(`.js-cart-item-container-${productId}`);
+      if (container) container.remove();
+      updateCartQuantity();
+      renderCartItems();  // re-render to update UI after removal
+    });
+  });
+
+  // Delivery option inputs change listener
+  document.querySelectorAll('.delivery-option-input').forEach((input) => {
+    input.addEventListener('change', () => {
+      const productId = input.name.split('delivery-')[1];
+      const deliveryOptionId = input.value;
+
+      updateDeliveryoption(productId, deliveryOptionId);
+      renderCartItems();  // re-render so UI updates properly
+      updateCartQuantity();
+    });
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   renderCartItems();
