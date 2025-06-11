@@ -1,6 +1,7 @@
   import { cart, removeFromCart, saveToStorage, updateDeliveryoption } from './cart.js';
   import { products } from '../data/products.js';
   import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
+  import { addorder } from '../data/orders.js';
 
   const deliveryoptions = [
     { id: '1', deliverydays: 7, pricecents: 0 },
@@ -72,7 +73,7 @@
       const deliveryDate = dayjs().add(selectedOption.deliverydays, 'days').format('dddd, MMMM D');
 
       container.innerHTML += `
-        <div class="cart-item-container js-cart-item-container-${product.id}">
+        <div class="cart-item-container js-cart-item-container  js-cart-item-container-${product.id}">
           <div class="delivery-date">Delivery date: ${deliveryDate}</div>
           <div class="cart-item-details-grid">
             <img class="product-image" src="${product.image}">
@@ -169,13 +170,38 @@
       <div class="payment-summary-money">$${orderTotal}</div>
     </div>
 
-    <button class="place-order-button button-primary">
+    <button class="place-order-button button-primary js-place-order">
       Place your order
     </button>
   `;
+  
 
   const paymentContainer = document.querySelector('.js-payment-summary');
   if (paymentContainer) {
     paymentContainer.innerHTML = paymenthtml;
+    document.querySelector('.js-place-order').addEventListener('click', async () => {
+
+      try{
+          const response = await fetch('https://supersimplebackend.dev/orders', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                cart: cart
+              })
+            });
+
+            const order = await response.json();
+            addorder(order);
+      } catch(error){
+        console.log('unexpected error.  try again later.')
+      }
+
+      window.location.href = 'orders.html';  
+});
   }
+
 }
+
+
