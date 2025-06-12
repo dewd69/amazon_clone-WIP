@@ -21,3 +21,18 @@ It includes various feature :
  - place order and further details ahead
    
 #use jasmin for basic testing
+
+## 📸 Screenshots
+
+### 🏠 Homepage
+![Homepage](screenshots/Screenshot%202025-06-12%20220431.png)
+
+### 🛒 Cart Page
+![Cart](screenshots/Screenshot%202025-06-12%20220731.png)
+
+### 🚚 Delivery Page
+![Delivery](screenshots/Screenshot%202025-06-12%20220741.png)
+
+### 📦 Final Summary
+![Final](screenshots/Screenshot%202025-06-12%20220753.png)
+
